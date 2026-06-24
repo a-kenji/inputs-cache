@@ -1,0 +1,38 @@
+name: "ci"
+on:
+  workflow_dispatch: # allows manual triggering
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  merge_group:
+permissions:
+  contents: read
+  actions: write
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: nixos/nix-installer-action@main
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: Mic92/hestia@main
+      - name: "check formatting"
+        run: nix build .#checks.x86_64-linux.treefmt -Lvv --no-update-lock-file
+  inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: nixos/nix-installer-action@main
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: Mic92/hestia@main
+      - name: "build flake inputs"
+        run: nix build .#checks.x86_64-linux.inputs -Lvv --no-update-lock-file
